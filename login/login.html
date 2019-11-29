@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <title>登录</title>
+</head>
+<body>
+
+    <div id="app">
+            <el-row>
+                <el-col :span="6" :offset="11"><h1>登录</h1></el-col>
+            </el-row> 
+            <el-row class="login-method">
+                <el-col :span="3" :offset="9"><el-link v-bind:type="[loginFlag ? 'success' : 'primary'][0]" @click="loginByUsername">账号密码登录</el-link></el-col>
+                <el-col :span="3"><el-link v-bind:type="[loginFlag ? 'primary' : 'success'][0]" @click="loginByVer">短信验证码登录</el-link></el-col>
+            </el-row>
+            <div class="form-container">
+            <div v-bind:class="[loginFlag ? 'login-username' : 'login-ver']">
+                <el-row>
+                    <el-col :span="6" :offset="9"><el-input placeholder="请输入用户名" suffix-icon="el-icon-user" v-model="username"></el-input></el-col>
+                </el-row>
+                <el-row>
+                    <el-col :span="6" :offset="9"><el-input placeholder="请输入密码" v-model="password" show-password></el-input></el-col>
+                    </el-row>
+            </div>
+            <div v-bind:class="[loginFlag ? 'login-ver' : 'login-username']">
+                <el-row> 
+                    <el-col :span="6" :offset="9">
+                        <el-input placeholder="请输入手机号码" v-model="phone">
+                        <el-button slot="append" v-if="waitTime == initWaitTime" @click="sendVerCode">获取验证码</el-button>
+                        <el-button slot="append" v-else>{{waitTime}}</el-button>
+                        </el-input>
+                    </el-col>
+                </el-row>
+                <el-row>
+                    <el-col :span="6" :offset="9"><el-input placeholder="请输入验证码" v-model="verCode"></el-input></el-col>
+                    </el-row>
+            </div>
+            </div>
+            <el-row>
+                <el-col :span="2" :offset="10">
+                    <el-button type="success" @click="login">登录</el-button>
+                </el-col>
+                <el-col :span="2" :offset="0">
+                    <el-button type="primary" @click="registered">注册</el-button>
+                </el-col>
+                
+            </el-row>
+    </div>
+    
+</body>
+
+<style>
+
+    .el-row{
+      margin:15px;
+    } 
+        
+    .login-method{
+        margin-bottom:25px;
+    }
+      
+    .login-username{
+        display: block;
+    }
+        
+    .login-ver{
+        display: none;
+    }
+        
+</style>
+
+<!-- import Vue before Element -->
+<script src="https://unpkg.com/vue/dist/vue.js"></script>
+<!-- import JavaScript -->
+<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+<script>
+  new Vue({
+    el: '#app',
+    data: function() {
+      return {
+        username:'',
+        password:'',
+        phone:'',
+        verCode:'',
+        loginFlag:true, // true 用户名登录， false 验证码登录
+        initWaitTime:30,
+        waitTime:30
+      }
+    },
+    methods:{
+    login:function(){
+      window.location.href = '../index.html';
+    },
+    registered:function(){
+      window.location.href = '../registered/registered.html'
+    },
+    loginByUsername:function(){
+      this.loginFlag = true;
+    },
+    loginByVer:function(){
+      this.loginFlag = false;
+    },
+    sendVerCode:function(){
+      var that = this;
+      var timeId = setInterval(function(){
+        that.waitTime = that.waitTime - 1;
+        if(that.waitTime==0){
+          clearInterval(timeId);
+          that.waitTime = that.initWaitTime;
+        }
+      },1000);
+    }
+  }
+  })
+</script>
+</html>
