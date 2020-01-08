@@ -82,6 +82,7 @@
 <!-- import JavaScript -->
 <script src="https://unpkg.com/element-ui/lib/index.js"></script>
 <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script src="../config.js"></script>
 
 <script>
     new Vue({
@@ -130,7 +131,7 @@
                     });
                 }else{
 
-                    axios.post("http://127.0.0.1:8080/addUser",{
+                    axios.post(url+"/addUser",{
                         username:this.form.username,
                         phone:this.form.phone,
                         password:this.form.password,
@@ -144,7 +145,7 @@
                                 type: 'success'
                             });
                             setTimeout(function(){
-                            //window.location.href = '../login/login.html';
+                                window.location.href = '../login/login.html';
                             },1000);
                         }else{
                             this.$message({
