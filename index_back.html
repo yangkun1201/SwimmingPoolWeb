@@ -42,7 +42,7 @@
             <a class="nav-link js-scroll-trigger" href="#check_in_out">出入馆登记</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link js-scroll-trigger" href="#experience">出入馆查询</a>
+            <a class="nav-link js-scroll-trigger" href="#inquire">出入馆查询</a>
           </li>
           <li class="nav-item">
             <a class="nav-link js-scroll-trigger" href="#education">用户管理</a>
@@ -111,63 +111,28 @@
 
       <hr class="m-0">
 
-      <section class="resume-section p-3 p-lg-5 d-flex justify-content-center" id="experience">
+      <section class="resume-section p-3 p-lg-5 d-flex justify-content-center" id="inquire">
         <div class="w-100">
-          <h2 class="mb-5">Experience</h2>
-
-          <div class="resume-item d-flex flex-column flex-md-row justify-content-between mb-5">
-            <div class="resume-content">
-              <h3 class="mb-0">Senior Web Developer</h3>
-              <div class="subheading mb-3">Intelitec Solutions</div>
-              <p>Bring to the table win-win survival strategies to ensure proactive domination. At the end of the day,
-                going forward, a new normal that has evolved from generation X is on the runway heading towards a
-                streamlined cloud solution. User generated content in real-time will have multiple touchpoints for
-                offshoring.</p>
-            </div>
-            <div class="resume-date text-md-right">
-              <span class="text-primary">March 2013 - Present</span>
-            </div>
+          <div>
+            <!-- <el-input v-model="i_begin_time" placeholder="开始时间"></el-input>
+            <el-input v-model="i_end_time" placeholder="结束时间"></el-input>
+            <el-input v-model="i_phone" placeholder="手机号码"></el-input>
+            <el-input v-model="i_flag" placeholder="出入馆"></el-input>
+            <el-input v-model="i_vercode" placeholder="验证码"></el-input> -->
           </div>
-
-          <div class="resume-item d-flex flex-column flex-md-row justify-content-between mb-5">
-            <div class="resume-content">
-              <h3 class="mb-0">Web Developer</h3>
-              <div class="subheading mb-3">Intelitec Solutions</div>
-              <p>Capitalize on low hanging fruit to identify a ballpark value added activity to beta test. Override the
-                digital divide with additional clickthroughs from DevOps. Nanotechnology immersion along the information
-                highway will close the loop on focusing solely on the bottom line.</p>
-            </div>
-            <div class="resume-date text-md-right">
-              <span class="text-primary">December 2011 - March 2013</span>
-            </div>
-          </div>
-
-          <div class="resume-item d-flex flex-column flex-md-row justify-content-between mb-5">
-            <div class="resume-content">
-              <h3 class="mb-0">Junior Web Designer</h3>
-              <div class="subheading mb-3">Shout! Media Productions</div>
-              <p>Podcasting operational change management inside of workflows to establish a framework. Taking seamless
-                key performance indicators offline to maximise the long tail. Keeping your eye on the ball while
-                performing a deep dive on the start-up mentality to derive convergence on cross-platform integration.
-              </p>
-            </div>
-            <div class="resume-date text-md-right">
-              <span class="text-primary">July 2010 - December 2011</span>
-            </div>
-          </div>
-
-          <div class="resume-item d-flex flex-column flex-md-row justify-content-between">
-            <div class="resume-content">
-              <h3 class="mb-0">Web Design Intern</h3>
-              <div class="subheading mb-3">Shout! Media Productions</div>
-              <p>Collaboratively administrate empowered markets via plug-and-play networks. Dynamically procrastinate
-                B2C
-                users after installed base benefits. Dramatically visualize customer directed convergence without
-                revolutionary ROI.</p>
-            </div>
-            <div class="resume-date text-md-right">
-              <span class="text-primary">September 2008 - June 2010</span>
-            </div>
+          <div>
+            <el-button type="primary" @click="fetchCheckTableRecords">查询</el-button>
+            <el-button type="primary" @click="resetCheckTableRecords">重置</el-button>
+            <el-table :data="CheckInOutTable" style="width: 100%">
+              <el-table-column prop="phone" label="手机号码" width="220">
+              </el-table-column>
+              <el-table-column prop="vercode" label="验证码" width="220">
+              </el-table-column>
+              <el-table-column prop="checkInTime" label="入馆时间" width="240">
+              </el-table-column>
+              <el-table-column prop="checkOutTime" label="出馆时间" width="240">
+              </el-table-column>
+            </el-table>
           </div>
 
         </div>
@@ -361,7 +326,8 @@
         verCodeGet: '',
         verCodeCheckOut: '',
         initWaitTime: 30,
-        waitTime: 30
+        waitTime: 30,
+        CheckInOutTable: []
       }
     },
     methods: {
@@ -383,6 +349,17 @@
           });
           return;
         }
+
+        axios.get(url + '/phoneHasRegistered?phone=' + this.phone).then(res => {
+          if (res.data.status == 'failure') {
+            this.$message({
+              message: '手机号码未注册',
+              type: 'error'
+            });
+            return;
+          }
+        })
+
         var that = this;
         var timeId = setInterval(function () {
           that.waitTime = that.waitTime - 1;
@@ -453,16 +430,32 @@
               message: '出馆成功',
               type: 'success'
             });
-          }else if (res.data.check_status == "failure") {
+          } else if (res.data.check_status == "failure") {
             this.$message({
               message: res.data.desc,
               type: 'error'
             });
           }
         });
+      },
 
+      fetchCheckTableRecords: function(){
+        axios.get(url+'/getCheckInOutRecords?page=0&pageSize=2').then(res=>{
+          this.CheckInOutTable = res.data;
+          this.CheckInOutTable.forEach(element => {
+              var date0 = new Date(element.checkInTime);
+              element.checkInTime = date0.toLocaleString();
+              var date1 = new Date(element.checkOutTime);
+              element.checkOutTime = date1.toLocaleString();
+          });
+        })
+      },
 
+      resetCheckTableRecords: function(){
+        this.CheckInOutTable = [];
       }
+
+
     }
 
   })
