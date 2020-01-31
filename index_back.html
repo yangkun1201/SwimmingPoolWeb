@@ -113,28 +113,35 @@
 
       <section class="resume-section p-3 p-lg-5 d-flex justify-content-center" id="inquire">
         <div class="w-100">
-          <div>
-            <!-- <el-input v-model="i_begin_time" placeholder="开始时间"></el-input>
-            <el-input v-model="i_end_time" placeholder="结束时间"></el-input>
-            <el-input v-model="i_phone" placeholder="手机号码"></el-input>
-            <el-input v-model="i_flag" placeholder="出入馆"></el-input>
-            <el-input v-model="i_vercode" placeholder="验证码"></el-input> -->
+          <div style="width: 800px;">
+            <el-form :model="check_inquire_param" label-width="80px">
+              <el-form-item label="手机号码">
+                <el-input v-model="check_inquire_param.phone"></el-input>
+              </el-form-item>
+              <el-form-item label="验证码">
+                <el-input v-model="check_inquire_param.vercode"></el-input>
+              </el-form-item>
+            </el-form>
           </div>
           <div>
-            <el-button type="primary" @click="fetchCheckTableRecords">查询</el-button>
+            <el-button type="success" @click="fetchCheckTableRecords">查询</el-button>
             <el-button type="primary" @click="resetCheckTableRecords">重置</el-button>
             <el-table :data="CheckInOutTable" style="width: 100%">
               <el-table-column prop="phone" label="手机号码" width="220">
               </el-table-column>
-              <el-table-column prop="vercode" label="验证码" width="220">
+              <el-table-column prop="verCode" label="验证码" width="220">
               </el-table-column>
-              <el-table-column prop="checkInTime" label="入馆时间" width="240">
+              <el-table-column prop="checkFlag" label="出/入馆" width="240">
               </el-table-column>
-              <el-table-column prop="checkOutTime" label="出馆时间" width="240">
+              <el-table-column prop="checkTime" label="时间" width="240">
               </el-table-column>
             </el-table>
           </div>
-
+          <div style="margin-top: 20px;">
+            <el-pagination background layout="prev, pager, next" :total="check_inqure_total"
+            @current-change="check_inquire_handleCurrentChange">
+            </el-pagination>
+          </div>
         </div>
 
       </section>
@@ -327,7 +334,12 @@
         verCodeCheckOut: '',
         initWaitTime: 30,
         waitTime: 30,
-        CheckInOutTable: []
+        CheckInOutTable: [],
+        check_inquire_param: {
+          phone: '',
+          vercode: ''
+        },
+        check_inqure_total:300
       }
     },
     methods: {
@@ -410,8 +422,6 @@
             });
           }
         })
-
-
       },
       check_out: function () {
 
@@ -439,20 +449,45 @@
         });
       },
 
-      fetchCheckTableRecords: function(){
-        axios.get(url+'/getCheckInOutRecords?page=0&pageSize=2').then(res=>{
+      fetchCheckTableRecords: function () {
+        var phone = this.check_inquire_param.phone;
+        var vercode = this.check_inquire_param.vercode;
+        axios.get(url + '/getCheckInOutRecords?phone='+phone+'&vercode='+vercode+'&page=0&pageSize=8').then(res => {
           this.CheckInOutTable = res.data;
           this.CheckInOutTable.forEach(element => {
-              var date0 = new Date(element.checkInTime);
-              element.checkInTime = date0.toLocaleString();
-              var date1 = new Date(element.checkOutTime);
-              element.checkOutTime = date1.toLocaleString();
+            if(element.checkFlag == 0){
+              element.checkFlag = '入馆';
+            }else if(element.checkFlag == 1){
+              element.checkFlag = '出馆';
+            }
+            var date = new Date(element.checkTime);
+            element.checkTime = date.toLocaleString();
           });
         })
       },
 
-      resetCheckTableRecords: function(){
+      resetCheckTableRecords: function () {
         this.CheckInOutTable = [];
+        this.check_inquire_param.phone = '';
+        this.check_inquire_param.vercode = '';
+      },
+
+      check_inquire_handleCurrentChange: function (val){
+        val = val - 1;
+        var phone = this.check_inquire_param.phone;
+        var vercode = this.check_inquire_param.vercode;
+        axios.get(url + '/getCheckInOutRecords?phone='+phone+'&vercode='+vercode+'&page='+val+'&pageSize=8').then(res => {
+          this.CheckInOutTable = res.data;
+          this.CheckInOutTable.forEach(element => {
+            if(element.checkFlag == 0){
+              element.checkFlag = '入馆';
+            }else if(element.checkFlag == 1){
+              element.checkFlag = '出馆';
+            }
+            var date = new Date(element.checkTime);
+            element.checkTime = date.toLocaleString();
+          });
+        })
       }
 
 
