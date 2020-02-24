@@ -39,7 +39,7 @@
             <a class="nav-link js-scroll-trigger" href="#user">用户管理</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link js-scroll-trigger" href="#skills">票卡管理</a>
+            <a class="nav-link js-scroll-trigger" href="#card">票卡管理</a>
           </li>
           <li class="nav-item">
             <a class="nav-link js-scroll-trigger" href="#interests">商品管理</a>
@@ -130,7 +130,7 @@
           </div>
           <div style="margin-top: 20px;">
             <el-pagination background layout="prev, pager, next" :total="check_inqure_total"
-            @current-change="check_inquire_handleCurrentChange">
+              @current-change="check_inquire_handleCurrentChange">
             </el-pagination>
           </div>
         </div>
@@ -141,75 +141,110 @@
 
       <section class="resume-section p-3 p-lg-5 d-flex justify-content-center" id="user">
         <div class="w-100">
-        
-        <div>
-          <div style="width: 800px;">
-            <el-form :model="user_param" label-width="80px">
-              <el-form-item label="手机号码">
-                <el-input v-model="user_param.phone"></el-input>
-              </el-form-item>
-              <el-form-item label="姓名">
-                <el-input v-model="user_param.username"></el-input>
-              </el-form-item>
-            </el-form>
-            <div>
-              <el-button type="success" @click="fetchUserRecords">查询</el-button>
-              <el-button type="primary" @click="resetUserRecords">重置</el-button>
-              <el-table :data="userTable" style="width: 100%">
-                <el-table-column prop="phone" label="手机号码" width="150">
-                </el-table-column>
-                <el-table-column prop="username" label="姓名" width="150">
-                </el-table-column>
-                <el-table-column prop="gender" label="性别" width="150">
-                </el-table-column>
-                <el-table-column prop="ticket_type" label="套餐类型" width="150">
-                </el-table-column>
-                <el-table-column label="操作">
-                  <template slot-scope="scope">
-                    <el-button
-                      size="mini"
-                      @click="userhandleEdit(scope.$index, scope.row)">编辑</el-button>
-                    <el-button
-                      size="mini"
-                      type="danger"
-                      @click="userhandleDelete(scope.$index, scope.row)">删除</el-button>
-                  </template>
-                </el-table-column>
-              </el-table>
-            </div>
-            <div style="margin-top: 20px;">
-              <el-pagination background layout="prev, pager, next" :total="user_total"
-              @current-change="user_handleCurrentChange">
-              </el-pagination>
+
+          <div>
+            <div style="width: 800px;">
+              <el-form :model="user_param" label-width="80px">
+                <el-form-item label="手机号码">
+                  <el-input v-model="user_param.phone"></el-input>
+                </el-form-item>
+                <el-form-item label="姓名">
+                  <el-input v-model="user_param.username"></el-input>
+                </el-form-item>
+              </el-form>
+              <div>
+                <el-button type="success" @click="fetchUserRecords">查询</el-button>
+                <el-button type="primary" @click="resetUserRecords">重置</el-button>
+                <el-table :data="userTable" style="width: 100%">
+                  <el-table-column prop="phone" label="手机号码" width="150">
+                  </el-table-column>
+                  <el-table-column prop="username" label="姓名" width="150">
+                  </el-table-column>
+                  <el-table-column prop="gender" label="性别" width="150">
+                  </el-table-column>
+                  <el-table-column prop="ticket_type" label="票卡类型" width="150">
+                  </el-table-column>
+                  <el-table-column label="操作">
+                    <template slot-scope="scope">
+                      <el-button size="mini" @click="userhandleEdit(scope.$index, scope.row)">编辑</el-button>
+                      <el-button size="mini" type="danger" @click="userhandleDelete(scope.$index, scope.row)">删除
+                      </el-button>
+                    </template>
+                  </el-table-column>
+                </el-table>
+              </div>
+              <div style="margin-top: 20px;">
+                <el-pagination background layout="prev, pager, next" :total="user_total"
+                  @current-change="user_handleCurrentChange">
+                </el-pagination>
+              </div>
+              <div>
+                <el-dialog title="用户信息修改" :visible.sync="userEditdialogVisible" width="30%">
+                  <el-form :model="userEditForm" :ref="userEditForm" label-width="70px">
+                    <el-form-item label="手机号码" prop="phone">
+                      <el-input suffix-icon="el-icon-phone" v-model="userEditForm.phone"></el-input>
+                    </el-form-item>
+                    <el-form-item label="用户名" prop="username">
+                      <el-input suffix-icon="el-icon-user" v-model="userEditForm.username"></el-input>
+                    </el-form-item>
+                    <el-form-item label="性别" prop="gender">
+                      <el-radio suffix-icon="el-icon-gender" v-model="userEditForm.gender" label="0">男</el-input>
+                        <el-radio suffix-icon="el-icon-gender" v-model="userEditForm.gender" label="1">女</el-input>
+                    </el-form-item>
+                    <el-form-item label="票卡类型" prop="card_type">
+                      <el-select v-model="userEditForm.card_type" placeholder="请选择">
+                        <el-option v-for="item in card_types" :key="item.value" :label="item.name" :value="item.value">
+                        </el-option>
+                      </el-select>
+                    </el-form-item>
+                  </el-form>
+                  <span slot="footer" class="dialog-footer">
+                    <el-button @click="userEditdialogVisible = false">取 消</el-button>
+                    <el-button type="primary" @click="userHandleChange">确 定</el-button>
+                  </span>
+                </el-dialog>
+              </div>
             </div>
           </div>
-        </div>
-       
 
         </div>
       </section>
 
       <hr class="m-0">
 
-      <section class="resume-section p-3 p-lg-5 d-flex align-items-center" id="skills">
+      <section class="resume-section p-3 p-lg-5 d-flex justify-content-center" id="card">
         <div class="w-100">
-         
+          <div>
+            <el-button type="primary" style="margin-left: 10px;" @click="">增加</el-button>
+          </div>
+          <div>
+            <el-card class="box-card" style="width: 600px; margin: 10px;" v-for="(o,index) in 4" :key="o">
+              <img src="https://avatars3.githubusercontent.com/u/33971669?s=460&v=4" class="image"
+                style="width: 80px;height: 80px;">
+              <span style="margin-left: 50px;">年卡</span>
+              <el-button size="mini" type="danger" @click="" style="margin-left: 280px;">删除</el-button>
+            </el-card>
+          </div>
+          <div style="margin-top: 20px;">
+            <el-pagination background layout="prev, pager, next" :total="500" @current-change="">
+            </el-pagination>
+          </div>
         </div>
       </section>
 
       <hr class="m-0">
 
-      <section class="resume-section p-3 p-lg-5 d-flex align-items-center" id="interests">
+      <section class="resume-section p-3 p-lg-5 d-flex justify-content-center" id="interests">
         <div class="w-100">
-         
+
         </div>
       </section>
 
       <hr class="m-0">
 
-      <section class="resume-section p-3 p-lg-5 d-flex align-items-center" id="awards">
+      <section class="resume-section p-3 p-lg-5 d-flex justify-content-center" id="awards">
         <div class="w-100">
-          
+
         </div>
       </section>
 
@@ -257,13 +292,30 @@
           phone: '',
           vercode: ''
         },
-        check_inqure_total:500,
-        user_param:{
-          phone:'',
-          username:''
+        check_inqure_total: 500,
+        user_param: {
+          phone: '',
+          username: ''
         },
-        userTable:[],
-        user_total:500
+        userTable: [],
+        user_total: 500,
+        userEditdialogVisible: false,
+        userEditForm: {
+          id: 0,
+          phone: '',
+          username: '',
+          gender: '1',
+          card_type: 0
+        },
+        card_types: [
+          {
+            name: '单次票',
+            value: 0
+          }, {
+            name: '会员票',
+            value: 1
+          }
+        ]
       }
     },
     methods: {
@@ -358,7 +410,6 @@
         }
 
         axios.get(url + '/checkOut?verCode=' + this.verCodeCheckOut).then(res => {
-          console.log(res);
           if (res.data.check_status == 'ok') {
             this.$message({
               message: '出馆成功',
@@ -376,12 +427,12 @@
       fetchCheckTableRecords: function () {
         var phone = this.check_inquire_param.phone;
         var vercode = this.check_inquire_param.vercode;
-        axios.get(url + '/getCheckInOutRecords?phone='+phone+'&vercode='+vercode+'&page=0&pageSize=8').then(res => {
+        axios.get(url + '/getCheckInOutRecords?phone=' + phone + '&vercode=' + vercode + '&page=0&pageSize=8').then(res => {
           this.CheckInOutTable = res.data;
           this.CheckInOutTable.forEach(element => {
-            if(element.checkFlag == 0){
+            if (element.checkFlag == 0) {
               element.checkFlag = '入馆';
-            }else if(element.checkFlag == 1){
+            } else if (element.checkFlag == 1) {
               element.checkFlag = '出馆';
             }
             var date = new Date(element.checkTime);
@@ -396,16 +447,16 @@
         this.check_inquire_param.vercode = '';
       },
 
-      check_inquire_handleCurrentChange: function (val){
+      check_inquire_handleCurrentChange: function (val) {
         val = val - 1;
         var phone = this.check_inquire_param.phone;
         var vercode = this.check_inquire_param.vercode;
-        axios.get(url + '/getCheckInOutRecords?phone='+phone+'&vercode='+vercode+'&page='+val+'&pageSize=8').then(res => {
+        axios.get(url + '/getCheckInOutRecords?phone=' + phone + '&vercode=' + vercode + '&page=' + val + '&pageSize=8').then(res => {
           this.CheckInOutTable = res.data;
           this.CheckInOutTable.forEach(element => {
-            if(element.checkFlag == 0){
+            if (element.checkFlag == 0) {
               element.checkFlag = '入馆';
-            }else if(element.checkFlag == 1){
+            } else if (element.checkFlag == 1) {
               element.checkFlag = '出馆';
             }
             var date = new Date(element.checkTime);
@@ -414,49 +465,114 @@
         })
       },
 
-      fetchUserRecords: function(){
+      fetchUserRecords: function () {
         var phone = this.user_param.phone;
         var username = this.user_param.username;
-        axios.get(url + '/getUsers?phone='+phone+'&username='+username+'&page=0&pageSize=8').then(res => {
+        axios.get(url + '/getUsers?phone=' + phone + '&username=' + username + '&page=0&pageSize=8').then(res => {
           this.userTable = res.data;
           this.userTable.forEach(element => {
-            if(element.gender == 0){
+            if (element.gender == 0) {
               element.gender = '男';
-            }else if(element.gender == 1){
+            } else if (element.gender == 1) {
               element.gender = '女';
             }
+            element.ticket_type = '单次票';
           });
         })
       },
 
-      resetUserRecords: function(){
+      resetUserRecords: function () {
         this.userTable = [];
         this.user_param.phone = '';
         this.user_param.username = '';
       },
 
-      user_handleCurrentChange: function (val){
+      user_handleCurrentChange: function (val) {
         val = val - 1;
         var phone = this.user_param.phone;
         var username = this.user_param.username;
-        axios.get(url + '/getUsers?phone='+phone+'&username='+username+'&page='+val+'&pageSize=8').then(res => {
+        axios.get(url + '/getUsers?phone=' + phone + '&username=' + username + '&page=' + val + '&pageSize=8').then(res => {
           this.userTable = res.data;
           this.userTable.forEach(element => {
-            if(element.gender == 0){
+            if (element.gender == 0) {
               element.gender = '男';
-            }else if(element.gender == 1){
+            } else if (element.gender == 1) {
               element.gender = '女';
             }
+            element.ticket_type = '单次票';
           });
         })
       },
 
-      userhandleEdit: function(index, row) {
-        console.log(index, row);
+      userhandleEdit: function (index, row) {
+        this.userEditdialogVisible = true;
+        this.userEditForm.id = row.id;
+        this.userEditForm.phone = row.phone;
+        this.userEditForm.username = row.username;
+        this.userEditForm.gender = row.gender == '男' ? '0' : '1';
       },
 
-      userhandleDelete: function(index, row) {
-        console.log(index, row);
+      userhandleDelete: function (index, row) {
+        this.$confirm('确认删除用户' + row.username + '?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          axios.get(url + '/deleteUser?id=' + row.id).then(res => {
+            if (res.data.status == 'ok') {
+              this.$message({
+                type: 'success',
+                message: '删除成功!'
+              });
+              var that = this;
+              setTimeout(function () {
+                that.fetchUserRecords();
+              }, 500);
+            } else {
+              this.$message({
+                type: 'error',
+                message: '删除失败!'
+              });
+            }
+          })
+
+        }).catch(() => {
+          this.$message({
+            type: 'info',
+            message: '已取消删除'
+          });
+        });
+      },
+
+      userHandleChange: function () {
+        axios.get(url + '/changeUserInfo', {
+          params: {
+            id: this.userEditForm.id,
+            phone: this.userEditForm.phone,
+            username: this.userEditForm.username,
+            gender: this.userEditForm.gender,
+            ticketType: 0
+          }
+        }).then(res => {
+          console.log(res);
+          if (res.data.status == 'ok') {
+            this.$message({
+              message: '用户信息修改成功',
+              type: 'success'
+            });
+          } else {
+            this.$message({
+              message: res.data.desc,
+              type: 'error'
+            });
+          }
+        })
+        var that = this;
+        setTimeout(function () {
+          that.userEditdialogVisible = false;
+          that.fetchUserRecords();
+        }, 500);
+
       }
 
     }
