@@ -193,7 +193,12 @@
                     </el-form-item>
                     <el-form-item label="票卡类型" prop="card_type">
                       <el-select v-model="userEditForm.card_type" placeholder="请选择">
-                        <el-option v-for="item in card_types" :key="item.value" :label="item.name" :value="item.value">
+                        <el-option 
+                        v-for="item in card_types" 
+                        :key="item.type" 
+                        :label="item.description" 
+                        :value="item.type"
+                        >
                         </el-option>
                       </el-select>
                     </el-form-item>
@@ -215,20 +220,42 @@
       <section class="resume-section p-3 p-lg-5 d-flex justify-content-center" id="card">
         <div class="w-100">
           <div>
-            <el-button type="primary" style="margin-left: 10px;" @click="">增加</el-button>
+            <el-button type="primary" style="margin-left: 10px;" @click="fetchCardInfo">查询</el-button>
+            <el-button type="primary" style="margin-left: 10px;" @click="addCard">增加</el-button>
           </div>
           <div>
-            <el-card class="box-card" style="width: 600px; margin: 10px;" v-for="(o,index) in 4" :key="o">
-              <img src="https://avatars3.githubusercontent.com/u/33971669?s=460&v=4" class="image"
+            <el-card class="box-card" style="width: 600px; margin: 10px;" v-for="(item,index) in card_types" :key="item.type">
+              <img v-bind:src="item.picUrl" class="image"
                 style="width: 80px;height: 80px;">
-              <span style="margin-left: 50px;">年卡</span>
-              <el-button size="mini" type="danger" @click="" style="margin-left: 280px;">删除</el-button>
+              <span style="margin-left: 50px;">{{item.description}}</span>
+              <el-button size="mini" type="danger" @click="deleteCard(item.type)" style="float: right;margin-top: 25px;">删除</el-button>
             </el-card>
           </div>
           <div style="margin-top: 20px;">
-            <el-pagination background layout="prev, pager, next" :total="500" @current-change="">
-            </el-pagination>
+            <!-- <el-pagination background layout="prev, pager, next" :total="500" @current-change="">
+            </el-pagination> -->
           </div>
+          <el-dialog title="新增票卡" :visible.sync="carddialogVisible" width="30%">
+            <el-form :model="cardEditForm" :ref="cardEditForm" label-width="110px">
+              <el-form-item label="票卡类型(数字)" prop="type">
+                <el-input suffix-icon="el-icon-type" v-model="cardEditForm.type"></el-input>
+              </el-form-item>
+              <el-form-item label="票卡名称" prop="desc">
+                <el-input suffix-icon="el-icon-desc" v-model="cardEditForm.desc"></el-input>
+              </el-form-item>
+              <el-form-item>
+                <el-upload class="avatar-uploader" action="/cardUploadUrl" :show-file-list="false"
+                  :http-request="uploadCardPic" :before-upload="cardBeforeUpload">
+                  <img v-if="cardEditForm.picUrl" :src="cardEditForm.picUrl" class="avatar">
+                  <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+                </el-upload>
+              </el-form-item>
+            </el-form>
+            <span slot="footer" class="dialog-footer">
+              <el-button @click="carddialogVisible = false">取 消</el-button>
+              <el-button type="primary" @click="submitCardInfo">确 定</el-button>
+            </span>
+          </el-dialog>
         </div>
       </section>
 
@@ -255,6 +282,33 @@
 <style>
   .el-row {
     margin: 15px;
+  }
+
+  .avatar-uploader .el-upload {
+    border: 1px dashed #d9d9d9;
+    border-radius: 6px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .avatar-uploader .el-upload:hover {
+    border-color: #409EFF;
+  }
+
+  .avatar-uploader-icon {
+    font-size: 28px;
+    color: #8c939d;
+    width: 178px;
+    height: 178px;
+    line-height: 178px;
+    text-align: center;
+  }
+
+  .avatar {
+    width: 178px;
+    height: 178px;
+    display: block;
   }
 </style>
 
@@ -305,17 +359,18 @@
           phone: '',
           username: '',
           gender: '1',
-          card_type: 0
+          card_type: 1
         },
-        card_types: [
-          {
-            name: '单次票',
-            value: 0
-          }, {
-            name: '会员票',
-            value: 1
-          }
-        ]
+        card_types: [],
+        carddialogVisible: false,
+        cardEditForm: {
+          type: '',
+          desc: '',
+          picUrl: ''
+        },
+        cardUploadUrl: url + '/uploadCardPic',
+        cardPicName: '',
+        cardRelativeUrl: ''
       }
     },
     methods: {
@@ -510,6 +565,7 @@
         this.userEditForm.phone = row.phone;
         this.userEditForm.username = row.username;
         this.userEditForm.gender = row.gender == '男' ? '0' : '1';
+        this.fetchCardInfo();
       },
 
       userhandleDelete: function (index, row) {
@@ -573,6 +629,90 @@
           that.fetchUserRecords();
         }, 500);
 
+      },
+
+      addCard: function () {
+        this.carddialogVisible = true;
+      },
+
+      cardBeforeUpload: function (file) {
+        if (this.cardEditForm.type == '') {
+          this.$message({
+            message: '请先输入票卡名称',
+            type: 'error'
+          });
+          return false;
+        } else {
+          let index = file.name.indexOf('.');
+          let suffix = file.name.substr(index);
+          this.cardPicName = this.cardEditForm.type + suffix;
+        }
+      },
+
+      uploadCardPic: function (content) {
+        let formData = new FormData();
+        formData.append('pic', content.file);
+        formData.append('picName', this.cardPicName);
+        axios.post(this.cardUploadUrl, formData).then(res => {
+          if (res.data.status == 'ok') {
+            this.cardEditForm.picUrl = pic_url + res.data.picUrl;
+            this.cardRelativeUrl = res.data.picUrl;
+          }
+        });
+      },
+
+      submitCardInfo: function () {
+        axios.get(url + '/addCard', {
+          params: {
+            type: this.cardEditForm.type,
+            desc: this.cardEditForm.desc,
+            picUrl: this.cardRelativeUrl
+          }
+        }).then(res => {
+          if (res.data.status == 'ok') {
+            this.$message({
+              message: '新增票卡成功',
+              type: 'success'
+            });
+          }else{
+            this.$message({
+              message: res.data.desc,
+              type: 'error'
+            });
+          }
+        });
+        this.cardEditForm.type = '';
+        this.cardEditForm.desc = '';
+        this.cardEditForm.picUrl = '';
+        this.cardRelativeUrl = '';
+        this.carddialogVisible = false;
+        this.fetchCardInfo();
+      },
+
+      fetchCardInfo:function(){
+        axios.get(url+'/getAllCardTypes').then(res=>{
+          this.card_types = res.data;
+          this.card_types.forEach(item=>{
+            item.picUrl = pic_url + item.picUrl;
+          })
+        })
+      },
+
+      deleteCard:function(type){
+        axios.get(url+'/deleteCard?type='+type).then(res=>{
+          if(res.data.status == 'ok'){
+            this.$message({
+              message: '删除票卡成功',
+              type: 'success'
+            });
+          }else{
+            this.$message({
+              message: '删除票卡失败',
+              type: 'error'
+            });
+          }
+          this.fetchCardInfo();
+        })
       }
 
     }
