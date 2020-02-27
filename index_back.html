@@ -36,7 +36,7 @@
             <a class="nav-link js-scroll-trigger" href="#inquire">出入馆查询</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link js-scroll-trigger" href="#user">用户管理</a>
+            <a class="nav-link js-scroll-trigger" href="#user" @click="changeToUserManager">用户管理</a>
           </li>
           <li class="nav-item">
             <a class="nav-link js-scroll-trigger" href="#card">票卡管理</a>
@@ -156,13 +156,15 @@
                 <el-button type="success" @click="fetchUserRecords">查询</el-button>
                 <el-button type="primary" @click="resetUserRecords">重置</el-button>
                 <el-table :data="userTable" style="width: 100%">
-                  <el-table-column prop="phone" label="手机号码" width="150">
+                  <el-table-column prop="phone" label="手机号码" width="130">
                   </el-table-column>
-                  <el-table-column prop="username" label="姓名" width="150">
+                  <el-table-column prop="username" label="姓名" width="130">
                   </el-table-column>
-                  <el-table-column prop="gender" label="性别" width="150">
+                  <el-table-column prop="gender" label="性别" width="130">
                   </el-table-column>
-                  <el-table-column prop="ticket_type" label="票卡类型" width="150">
+                  <el-table-column prop="integral" label="积分" width="130">
+                  </el-table-column>
+                  <el-table-column prop="cardDesc" label="票卡类型" width="130">
                   </el-table-column>
                   <el-table-column label="操作">
                     <template slot-scope="scope">
@@ -359,7 +361,7 @@
           phone: '',
           username: '',
           gender: '1',
-          card_type: 1
+          card_type: 0
         },
         card_types: [],
         carddialogVisible: false,
@@ -455,7 +457,6 @@
         })
       },
       check_out: function () {
-
         if (this.verCodeCheckOut == '') {
           this.$message({
             message: '验证码不能为空',
@@ -463,7 +464,6 @@
           });
           return;
         }
-
         axios.get(url + '/checkOut?verCode=' + this.verCodeCheckOut).then(res => {
           if (res.data.check_status == 'ok') {
             this.$message({
@@ -523,15 +523,17 @@
       fetchUserRecords: function () {
         var phone = this.user_param.phone;
         var username = this.user_param.username;
+        this.fetchCardInfo();
         axios.get(url + '/getUsers?phone=' + phone + '&username=' + username + '&page=0&pageSize=8').then(res => {
           this.userTable = res.data;
+          console.log(this.userTable);
           this.userTable.forEach(element => {
             if (element.gender == 0) {
               element.gender = '男';
             } else if (element.gender == 1) {
               element.gender = '女';
             }
-            element.ticket_type = '单次票';
+            element.cardDesc = this.getCardDescByType(element.cardType);
           });
         })
       },
@@ -554,7 +556,7 @@
             } else if (element.gender == 1) {
               element.gender = '女';
             }
-            element.ticket_type = '单次票';
+            element.cardDesc = this.getCardDescByType(element.cardType);
           });
         })
       },
@@ -565,7 +567,7 @@
         this.userEditForm.phone = row.phone;
         this.userEditForm.username = row.username;
         this.userEditForm.gender = row.gender == '男' ? '0' : '1';
-        this.fetchCardInfo();
+        this.userEditForm.card_type = row.cardType;
       },
 
       userhandleDelete: function (index, row) {
@@ -607,10 +609,9 @@
             phone: this.userEditForm.phone,
             username: this.userEditForm.username,
             gender: this.userEditForm.gender,
-            ticketType: 0
+            cardType: this.userEditForm.card_type
           }
         }).then(res => {
-          console.log(res);
           if (res.data.status == 'ok') {
             this.$message({
               message: '用户信息修改成功',
@@ -689,7 +690,7 @@
         this.fetchCardInfo();
       },
 
-      fetchCardInfo:function(){
+      fetchCardInfo: function(){
         axios.get(url+'/getAllCardTypes').then(res=>{
           this.card_types = res.data;
           this.card_types.forEach(item=>{
@@ -713,6 +714,19 @@
           }
           this.fetchCardInfo();
         })
+      },
+
+      getCardDescByType:function(type){
+        let desc = '';
+        this.card_types.forEach(item=>{
+          if(item.type == type){
+            desc = item.description;
+          }
+        })
+        return desc;
+      },
+      changeToUserManager:function(){
+        this.fetchCardInfo();
       }
 
     }
