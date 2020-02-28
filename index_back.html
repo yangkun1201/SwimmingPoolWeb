@@ -42,7 +42,7 @@
             <a class="nav-link js-scroll-trigger" href="#card">票卡管理</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link js-scroll-trigger" href="#interests">商品管理</a>
+            <a class="nav-link js-scroll-trigger" href="#commodity">商品管理</a>
           </li>
           <li class="nav-item">
             <a class="nav-link js-scroll-trigger" href="#awards">商品兑换记录</a>
@@ -263,9 +263,46 @@
 
       <hr class="m-0">
 
-      <section class="resume-section p-3 p-lg-5 d-flex justify-content-center" id="interests">
+      <section class="resume-section p-3 p-lg-5 d-flex justify-content-center" id="commodity">
         <div class="w-100">
-
+          <div>
+            <el-button type="primary" style="margin-left: 10px;" @click="fetchCommodityInfo">查询</el-button>
+            <el-button type="primary" style="margin-left: 10px;" @click="addCommondity">增加</el-button>
+          </div>
+          <div>
+            <el-card class="box-card" style="width: 600px; margin: 10px;" v-for="(item,index) in commodities" :key="item.id">
+              <img v-bind:src="item.picUrl" class="image"
+                style="width: 80px;height: 80px;">
+              <span style="margin-left: 50px;">{{item.name}}</span>
+              <span style="margin-left: 50px;">所需积分：{{item.price}}</span>
+              <el-button size="mini" type="danger" @click="deleteCommodity(item.id)" style="float: right;margin-top: 25px;">删除</el-button>
+            </el-card>
+          </div>
+          <div style="margin-top: 20px;">
+            <el-pagination background layout="prev, pager, next" :total="500" @current-change="changePageCommodityInfo">
+            </el-pagination>
+          </div>
+          <el-dialog title="新增商品" :visible.sync="commoditydialogVisible" width="30%">
+            <el-form :model="commodityEditForm" :ref="commodityEditForm" label-width="110px">
+              <el-form-item label="商品名称" prop="name">
+                <el-input suffix-icon="el-icon-name" v-model="commodityEditForm.name"></el-input>
+              </el-form-item>
+              <el-form-item label="商品价格" prop="price">
+                <el-input suffix-icon="el-icon-price" v-model="commodityEditForm.price"></el-input>
+              </el-form-item>
+              <el-form-item>
+                <el-upload class="avatar-uploader" :show-file-list="false" action=""
+                  :http-request="uploadCommodityPic" :before-upload="commodityBeforeUpload">
+                  <img v-if="commodityEditForm.picUrl" :src="commodityEditForm.picUrl" class="avatar">
+                  <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+                </el-upload>
+              </el-form-item>
+            </el-form>
+            <span slot="footer" class="dialog-footer">
+              <el-button @click="commoditydialogVisible = false">取 消</el-button>
+              <el-button type="primary" @click="submitCommodityInfo">确 定</el-button>
+            </span>
+          </el-dialog>
         </div>
       </section>
 
@@ -372,7 +409,17 @@
         },
         cardUploadUrl: url + '/uploadCardPic',
         cardPicName: '',
-        cardRelativeUrl: ''
+        cardRelativeUrl: '',
+        commodities:[],
+        commoditydialogVisible: false,
+        commodityEditForm:{
+          name:'',
+          price:'',
+          picUrl:''
+        },
+        commodityPicName:'',
+        commodityUploadUrl: url + '/uploadCommodityPic',
+        commodityRelativeUrl: ''
       }
     },
     methods: {
@@ -675,6 +722,7 @@
               message: '新增票卡成功',
               type: 'success'
             });
+            this.fetchCardInfo();
           }else{
             this.$message({
               message: res.data.desc,
@@ -687,7 +735,6 @@
         this.cardEditForm.picUrl = '';
         this.cardRelativeUrl = '';
         this.carddialogVisible = false;
-        this.fetchCardInfo();
       },
 
       fetchCardInfo: function(){
@@ -706,13 +753,13 @@
               message: '删除票卡成功',
               type: 'success'
             });
+            this.fetchCardInfo();
           }else{
             this.$message({
               message: '删除票卡失败',
               type: 'error'
             });
           }
-          this.fetchCardInfo();
         })
       },
 
@@ -727,7 +774,103 @@
       },
       changeToUserManager:function(){
         this.fetchCardInfo();
+      },
+
+      fetchCommodityInfo:function(){
+        axios.get(url+'/getAllCommodities?page=0&pageSize=4').then(res=>{
+          this.commodities = res.data;
+          this.commodities.forEach(item=>{
+            item.picUrl = pic_url + item.picUrl;
+          })
+        })
+      },
+
+      addCommondity:function(){
+        this.commoditydialogVisible = true;
+      },
+
+      deleteCommodity:function(id){
+        axios.get(url+'/deleteCommodityById?id='+id).then(res=>{
+          if(res.data.status == 'ok'){
+            this.$message({
+              message: '删除商品成功',
+              type: 'success'
+            });
+            this.fetchCommodityInfo();
+          }else{
+            this.$message({
+              message: '删除商品失败',
+              type: 'error'
+            });
+          }
+        })
+
+      },
+
+      uploadCommodityPic:function(content){
+        let formData = new FormData();
+        formData.append('pic', content.file);
+        formData.append('picName', this.commodityPicName);
+        axios.post(this.commodityUploadUrl, formData).then(res => {
+          if (res.data.status == 'ok') {
+            this.commodityEditForm.picUrl = pic_url + res.data.picUrl;
+            this.commodityRelativeUrl = res.data.picUrl;
+          }
+        });
+      },
+
+      commodityBeforeUpload:function(file){
+        if (this.commodityEditForm.name == '') {
+          this.$message({
+            message: '请先输入商品名称',
+            type: 'error'
+          });
+          return false;
+        } else {
+          let index = file.name.indexOf('.');
+          let suffix = file.name.substr(index);
+          this.commodityPicName = this.commodityEditForm.name + suffix;
+        }
+      },
+
+      submitCommodityInfo:function(){
+        axios.get(url + '/addCommodity', {
+          params: {
+            name: this.commodityEditForm.name,
+            price: this.commodityEditForm.price,
+            picUrl: this.commodityRelativeUrl
+          }
+        }).then(res => {
+          if (res.data.status == 'ok') {
+            this.$message({
+              message: '新增商品成功',
+              type: 'success'
+            });
+            this.fetchCommodityInfo();
+          }else{
+            this.$message({
+              message: '新增商品失败',
+              type: 'error'
+            });
+          }
+        });
+        this.commodityEditForm.name = '';
+        this.commodityEditForm.price = '';
+        this.commodityEditForm.picUrl = '';
+        this.commodityRelativeUrl = '';
+        this.commoditydialogVisible = false;
+      },
+
+      changePageCommodityInfo:function(val){
+        val = val - 1;
+        axios.get(url+'/getAllCommodities?page='+val+'&pageSize=4').then(res=>{
+          this.commodities = res.data;
+          this.commodities.forEach(item=>{
+            item.picUrl = pic_url + item.picUrl;
+          })
+        })
       }
+
 
     }
 
