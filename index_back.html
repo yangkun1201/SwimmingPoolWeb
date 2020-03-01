@@ -45,7 +45,7 @@
             <a class="nav-link js-scroll-trigger" href="#commodity">商品管理</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link js-scroll-trigger" href="#awards">商品兑换记录</a>
+            <a class="nav-link js-scroll-trigger" href="#exchange">商品兑换记录</a>
           </li>
         </ul>
       </div>
@@ -195,12 +195,8 @@
                     </el-form-item>
                     <el-form-item label="票卡类型" prop="card_type">
                       <el-select v-model="userEditForm.card_type" placeholder="请选择">
-                        <el-option 
-                        v-for="item in card_types" 
-                        :key="item.type" 
-                        :label="item.description" 
-                        :value="item.type"
-                        >
+                        <el-option v-for="item in card_types" :key="item.type" :label="item.description"
+                          :value="item.type">
                         </el-option>
                       </el-select>
                     </el-form-item>
@@ -226,11 +222,13 @@
             <el-button type="primary" style="margin-left: 10px;" @click="addCard">增加</el-button>
           </div>
           <div>
-            <el-card class="box-card" style="width: 600px; margin: 10px;" v-for="(item,index) in card_types" :key="item.type">
-              <img v-bind:src="item.picUrl" class="image"
-                style="width: 80px;height: 80px;">
+            <el-card class="box-card" style="width: 600px; margin: 10px;" v-for="(item,index) in card_types"
+              :key="item.type">
+              <img v-bind:src="item.picUrl" class="image" style="width: 80px;height: 80px;">
               <span style="margin-left: 50px;">{{item.description}}</span>
-              <el-button size="mini" type="danger" @click="deleteCard(item.type)" style="float: right;margin-top: 25px;">删除</el-button>
+              <el-button size="mini" type="danger" @click="deleteCard(item.type)"
+                style="float: right;margin-top: 25px;">删除
+              </el-button>
             </el-card>
           </div>
           <div style="margin-top: 20px;">
@@ -270,12 +268,14 @@
             <el-button type="primary" style="margin-left: 10px;" @click="addCommondity">增加</el-button>
           </div>
           <div>
-            <el-card class="box-card" style="width: 600px; margin: 10px;" v-for="(item,index) in commodities" :key="item.id">
-              <img v-bind:src="item.picUrl" class="image"
-                style="width: 80px;height: 80px;">
+            <el-card class="box-card" style="width: 600px; margin: 10px;" v-for="(item,index) in commodities"
+              :key="item.id">
+              <img v-bind:src="item.picUrl" class="image" style="width: 80px;height: 80px;">
               <span style="margin-left: 50px;">{{item.name}}</span>
               <span style="margin-left: 50px;">所需积分：{{item.price}}</span>
-              <el-button size="mini" type="danger" @click="deleteCommodity(item.id)" style="float: right;margin-top: 25px;">删除</el-button>
+              <el-button size="mini" type="danger" @click="deleteCommodity(item.id)"
+                style="float: right;margin-top: 25px;">
+                删除</el-button>
             </el-card>
           </div>
           <div style="margin-top: 20px;">
@@ -291,8 +291,8 @@
                 <el-input suffix-icon="el-icon-price" v-model="commodityEditForm.price"></el-input>
               </el-form-item>
               <el-form-item>
-                <el-upload class="avatar-uploader" :show-file-list="false" action=""
-                  :http-request="uploadCommodityPic" :before-upload="commodityBeforeUpload">
+                <el-upload class="avatar-uploader" :show-file-list="false" action="" :http-request="uploadCommodityPic"
+                  :before-upload="commodityBeforeUpload">
                   <img v-if="commodityEditForm.picUrl" :src="commodityEditForm.picUrl" class="avatar">
                   <i v-else class="el-icon-plus avatar-uploader-icon"></i>
                 </el-upload>
@@ -308,9 +308,34 @@
 
       <hr class="m-0">
 
-      <section class="resume-section p-3 p-lg-5 d-flex justify-content-center" id="awards">
+      <section class="resume-section p-3 p-lg-5 d-flex justify-content-center" id="exchange">
         <div class="w-100">
-
+          <div style="width: 600px;">
+            <el-form :model="exchange_param" label-width="80px">
+              <el-form-item label="用户姓名">
+                <el-input v-model="exchange_param.username"></el-input>
+              </el-form-item>
+            </el-form>
+          </div>
+          <div>
+            <el-button type="success" @click="fetchExchangeRecords">查询</el-button>
+            <el-button type="primary" @click="resetExchangeRecords">重置</el-button>
+          </div>
+          <div>
+            <el-table :data="exchangeTable" style="width: 100%">
+              <el-table-column prop="username" label="姓名" width="180">
+              </el-table-column>
+              <el-table-column prop="commodityName" label="商品名" width="180">
+              </el-table-column>
+              <el-table-column prop="time" label="兑换时间" width="180">
+              </el-table-column>
+            </el-table>
+          </div>
+          <div style="margin-top: 20px;">
+            <el-pagination background layout="prev, pager, next" :total="500"
+              @current-change="changePageExchangeRecords">
+            </el-pagination>
+          </div>
         </div>
       </section>
 
@@ -410,16 +435,20 @@
         cardUploadUrl: url + '/uploadCardPic',
         cardPicName: '',
         cardRelativeUrl: '',
-        commodities:[],
+        commodities: [],
         commoditydialogVisible: false,
-        commodityEditForm:{
-          name:'',
-          price:'',
-          picUrl:''
+        commodityEditForm: {
+          name: '',
+          price: '',
+          picUrl: ''
         },
-        commodityPicName:'',
+        commodityPicName: '',
         commodityUploadUrl: url + '/uploadCommodityPic',
-        commodityRelativeUrl: ''
+        commodityRelativeUrl: '',
+        exchange_param: {
+          username: ''
+        },
+        exchangeTable: []
       }
     },
     methods: {
@@ -723,7 +752,7 @@
               type: 'success'
             });
             this.fetchCardInfo();
-          }else{
+          } else {
             this.$message({
               message: res.data.desc,
               type: 'error'
@@ -737,24 +766,24 @@
         this.carddialogVisible = false;
       },
 
-      fetchCardInfo: function(){
-        axios.get(url+'/getAllCardTypes').then(res=>{
+      fetchCardInfo: function () {
+        axios.get(url + '/getAllCardTypes').then(res => {
           this.card_types = res.data;
-          this.card_types.forEach(item=>{
+          this.card_types.forEach(item => {
             item.picUrl = pic_url + item.picUrl;
           })
         })
       },
 
-      deleteCard:function(type){
-        axios.get(url+'/deleteCard?type='+type).then(res=>{
-          if(res.data.status == 'ok'){
+      deleteCard: function (type) {
+        axios.get(url + '/deleteCard?type=' + type).then(res => {
+          if (res.data.status == 'ok') {
             this.$message({
               message: '删除票卡成功',
               type: 'success'
             });
             this.fetchCardInfo();
-          }else{
+          } else {
             this.$message({
               message: '删除票卡失败',
               type: 'error'
@@ -763,41 +792,41 @@
         })
       },
 
-      getCardDescByType:function(type){
+      getCardDescByType: function (type) {
         let desc = '';
-        this.card_types.forEach(item=>{
-          if(item.type == type){
+        this.card_types.forEach(item => {
+          if (item.type == type) {
             desc = item.description;
           }
         })
         return desc;
       },
-      changeToUserManager:function(){
+      changeToUserManager: function () {
         this.fetchCardInfo();
       },
 
-      fetchCommodityInfo:function(){
-        axios.get(url+'/getAllCommodities?page=0&pageSize=4').then(res=>{
+      fetchCommodityInfo: function () {
+        axios.get(url + '/getAllCommodities?page=0&pageSize=4').then(res => {
           this.commodities = res.data;
-          this.commodities.forEach(item=>{
+          this.commodities.forEach(item => {
             item.picUrl = pic_url + item.picUrl;
           })
         })
       },
 
-      addCommondity:function(){
+      addCommondity: function () {
         this.commoditydialogVisible = true;
       },
 
-      deleteCommodity:function(id){
-        axios.get(url+'/deleteCommodityById?id='+id).then(res=>{
-          if(res.data.status == 'ok'){
+      deleteCommodity: function (id) {
+        axios.get(url + '/deleteCommodityById?id=' + id).then(res => {
+          if (res.data.status == 'ok') {
             this.$message({
               message: '删除商品成功',
               type: 'success'
             });
             this.fetchCommodityInfo();
-          }else{
+          } else {
             this.$message({
               message: '删除商品失败',
               type: 'error'
@@ -807,7 +836,7 @@
 
       },
 
-      uploadCommodityPic:function(content){
+      uploadCommodityPic: function (content) {
         let formData = new FormData();
         formData.append('pic', content.file);
         formData.append('picName', this.commodityPicName);
@@ -819,7 +848,7 @@
         });
       },
 
-      commodityBeforeUpload:function(file){
+      commodityBeforeUpload: function (file) {
         if (this.commodityEditForm.name == '') {
           this.$message({
             message: '请先输入商品名称',
@@ -833,7 +862,7 @@
         }
       },
 
-      submitCommodityInfo:function(){
+      submitCommodityInfo: function () {
         axios.get(url + '/addCommodity', {
           params: {
             name: this.commodityEditForm.name,
@@ -847,7 +876,7 @@
               type: 'success'
             });
             this.fetchCommodityInfo();
-          }else{
+          } else {
             this.$message({
               message: '新增商品失败',
               type: 'error'
@@ -861,15 +890,54 @@
         this.commoditydialogVisible = false;
       },
 
-      changePageCommodityInfo:function(val){
+      changePageCommodityInfo: function (val) {
         val = val - 1;
-        axios.get(url+'/getAllCommodities?page='+val+'&pageSize=4').then(res=>{
+        axios.get(url + '/getAllCommodities?page=' + val + '&pageSize=4').then(res => {
           this.commodities = res.data;
-          this.commodities.forEach(item=>{
+          this.commodities.forEach(item => {
             item.picUrl = pic_url + item.picUrl;
           })
         })
+      },
+
+      fetchExchangeRecords: function () {
+        axios.get(url + '/getExchangeRecords', {
+          params: {
+            username: this.exchange_param.username,
+            page: 0,
+            pageSize: 8
+          }
+        }).then(res => {
+          this.exchangeTable = res.data;
+          this.exchangeTable.forEach(item => {
+            var date = new Date(item.time);
+            item.time = date.toLocaleString();
+          })
+        })
+      },
+
+      resetExchangeRecords: function () {
+        this.exchange_param.username = '';
+        this.exchangeTable = [];
+      },
+
+      changePageExchangeRecords:function(val){
+        val = val - 1;
+        axios.get(url + '/getExchangeRecords', {
+          params: {
+            username: this.exchange_param.username,
+            page: val,
+            pageSize: 8
+          }
+        }).then(res => {
+          this.exchangeTable = res.data;
+          this.exchangeTable.forEach(item => {
+            var date = new Date(item.time);
+            item.time = date.toLocaleString();
+          })
+        })
       }
+
 
 
     }
