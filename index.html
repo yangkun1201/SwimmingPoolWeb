@@ -42,7 +42,7 @@
 				<div class="collapse navbar-collapse" id="navbarResponsive">
 					<ul class="navbar-nav ml-auto my-2 my-lg-0">
 						<li class="nav-item">
-							<a class="nav-link js-scroll-trigger" href="#services">购买票卡</a>
+							<a class="nav-link js-scroll-trigger" href="#buy_cards">购买票卡</a>
 						</li>
 						<li class="nav-item">
 							<a class="nav-link js-scroll-trigger" href="#portfolio">积分兑换</a>
@@ -82,37 +82,17 @@
 		</header>
 
 		<!-- Services Section -->
-		<section class="page-section" id="services">
+		<section class="page-section" id="buy_cards">
 			<div class="container">
-				<h2 class="text-center mt-0">At Your Service</h2>
+				<h2 class="text-center mt-0">购买票卡</h2>
 				<hr class="divider my-4">
 				<div class="row">
-					<div class="col-lg-3 col-md-6 text-center">
+					<div class="col-lg-3 col-md-6 text-center" v-for="(item,index) in cardInfos" :key="item.type">
 						<div class="mt-5">
-							<i class="fas fa-4x fa-gem text-primary mb-4"></i>
-							<h3 class="h4 mb-2">Sturdy Themes</h3>
-							<p class="text-muted mb-0">Our themes are updated regularly to keep them bug free!</p>
-						</div>
-					</div>
-					<div class="col-lg-3 col-md-6 text-center">
-						<div class="mt-5">
-							<i class="fas fa-4x fa-laptop-code text-primary mb-4"></i>
-							<h3 class="h4 mb-2">Up to Date</h3>
-							<p class="text-muted mb-0">All dependencies are kept current to keep things fresh.</p>
-						</div>
-					</div>
-					<div class="col-lg-3 col-md-6 text-center">
-						<div class="mt-5">
-							<i class="fas fa-4x fa-globe text-primary mb-4"></i>
-							<h3 class="h4 mb-2">Ready to Publish</h3>
-							<p class="text-muted mb-0">You can use this design as is, or you can make changes!</p>
-						</div>
-					</div>
-					<div class="col-lg-3 col-md-6 text-center">
-						<div class="mt-5">
-							<i class="fas fa-4x fa-heart text-primary mb-4"></i>
-							<h3 class="h4 mb-2">Made with Love</h3>
-							<p class="text-muted mb-0">Is it really open source if it's not made with love?</p>
+							<img v-bind:src="item.picUrl" class="image" style="width: 120px;height: 120px;">
+							<h3 class="h6 mb-2" style="margin-top: 5px;">{{item.description}}</h3>
+							<el-button type="primary" style="margin-top: 10px;" @click="buyCard(item.type)">购买
+							</el-button>
 						</div>
 					</div>
 				</div>
@@ -285,11 +265,33 @@
 					genderChartData: {
 						columns: ['性别', '数量'],
 						rows: []
-					}
+					},
+					cardInfos: []
 				}
 			},
 			methods: {
+				buyCard: function (type) {
+					let phone = '17858285248';
+					axios.get(url + '/changeUserCardType', {
+						params: {
+							phone: phone,
+							cardType: type
+						}
+					}).then(res => {
+						if (res.data.status == 'ok') {
+							this.$message({
+								message: '购买票卡成功',
+								type: 'success'
+							});
+						}else{
+							this.$message({
+								message: '购买票卡失败',
+								type: 'error'
+							});
+						}
+					})
 
+				}
 			},
 			mounted: function () {
 				axios.get(url + '/getPeopleCountToday').then(res => {
@@ -298,6 +300,14 @@
 				axios.get(url + '/getCheckInCountNearWeek').then(res => {
 					this.checkInChartData.rows = res.data;
 				})
+
+				axios.get(url + '/getAllCardTypes').then(res => {
+					this.cardInfos = res.data;
+					this.cardInfos.forEach(item => {
+						item.picUrl = pic_url + item.picUrl;
+					})
+				})
+
 			}
 		});
 	</script>
