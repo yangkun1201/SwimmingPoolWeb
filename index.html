@@ -52,6 +52,25 @@
 						</li>
 					</ul>
 				</div>
+				<div style="margin-left: 60px;">
+					<el-popover placement="top" title="" width="100" trigger="hover">
+						<div v-if="isLogin">
+							<div>
+								<span>用户名: {{userInfo.username}}</span><br/>
+								<span>性别: {{userInfo.gender}}</span><br/>
+								<span>票卡类型: {{userInfo.cardType}}</span><br/>
+								<span>积分: {{userInfo.integral}}</span><br/>
+								<a href="login\login.html" @click="loginOut">退出登录</a>
+							</div>
+						</div>
+						<div v-else>
+							<div style="margin:0 auto; margin-bottom: 5px;">未登录</div>
+							<a href="login\login.html">马上登录</a>
+						</div>
+						<el-avatar slot="reference" size="medium" :src="avatarPic"></el-avatar>
+					</el-popover>
+					
+				</div>
 			</div>
 		</nav>
 
@@ -240,6 +259,7 @@
 
 	<!-- import Vue before Element -->
 	<script src="https://unpkg.com/vue/dist/vue.js"></script>
+	<script src="https://unpkg.com/vue-cookies@1.7.0/vue-cookies.js"></script>
 	<!-- import JavaScript -->
 	<script src="https://unpkg.com/element-ui/lib/index.js"></script>
 	<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
@@ -252,6 +272,8 @@
 			el: '#app',
 			data: function () {
 				return {
+					isLogin:false,
+					userInfo:{},
 					checkInChartData: {
 						columns: ['date', 'count'],
 						rows: []
@@ -266,7 +288,8 @@
 						columns: ['性别', '数量'],
 						rows: []
 					},
-					cardInfos: []
+					cardInfos: [],
+					avatarPic: 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png'
 				}
 			},
 			methods: {
@@ -283,7 +306,7 @@
 								message: '购买票卡成功',
 								type: 'success'
 							});
-						}else{
+						} else {
 							this.$message({
 								message: '购买票卡失败',
 								type: 'error'
@@ -291,9 +314,29 @@
 						}
 					})
 
+				},
+
+				loginOut: function(){
+					window.localStorage.clear();
 				}
+
 			},
 			mounted: function () {
+				let userInfo = JSON.parse(window.localStorage.getItem("userInfo"));
+				this.userInfo = userInfo;
+				console.log(this.userInfo);
+				if(userInfo == null){
+					this.isLogin = false;
+					this.avatarPic = 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png';
+				}else{
+					this.isLogin = true;
+					this.avatarPic = 'img/pic.jpg'
+					if(this.userInfo.gender == 0){
+						this.userInfo.gender = '男';
+					}else{
+						this.userInfo.gender = '女';
+					}
+				}
 				axios.get(url + '/getPeopleCountToday').then(res => {
 					this.genderChartData.rows = res.data;
 				})

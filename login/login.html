@@ -128,6 +128,7 @@
                 type: 'success'
               });
               setTimeout(function () {
+                window.localStorage.setItem("userInfo",JSON.stringify(res.data.user_info));
                 window.location.href = '../index.html';
               }, 1000);
 
@@ -180,6 +181,7 @@
                 type: 'success'
               });
               setTimeout(function () {
+                window.localStorage.setItem("userInfo",JSON.stringify(res.data.user_info));
                 window.location.href = '../index.html';
               }, 1000);
             }else if(res.data.login_status == 0 && res.data.user_type == 1){

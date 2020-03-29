@@ -147,7 +147,14 @@
                             setTimeout(function(){
                                 window.location.href = '../login/login.html';
                             },1000);
-                        }else{
+                        }
+                        else if(res.data == 'userExist'){
+                            this.$message({
+                                message: '用户已存在',
+                                type: 'error'
+                            });
+                        }
+                        else{
                             this.$message({
                                 message: '注册失败',
                                 type: 'error'
