@@ -45,7 +45,7 @@
 							<a class="nav-link js-scroll-trigger" href="#buy_cards">购买票卡</a>
 						</li>
 						<li class="nav-item">
-							<a class="nav-link js-scroll-trigger" href="#portfolio">积分兑换</a>
+							<a class="nav-link js-scroll-trigger" href="#exchange">积分兑换</a>
 						</li>
 						<li class="nav-item">
 							<a class="nav-link js-scroll-trigger" href="#contact">联系我们</a>
@@ -56,10 +56,10 @@
 					<el-popover placement="top" title="" width="100" trigger="hover">
 						<div v-if="isLogin">
 							<div>
-								<span>用户名: {{userInfo.username}}</span><br/>
-								<span>性别: {{userInfo.gender}}</span><br/>
-								<span>票卡类型: {{userInfo.cardType}}</span><br/>
-								<span>积分: {{userInfo.integral}}</span><br/>
+								<span>用户名: {{userInfo.username}}</span><br />
+								<span>性别: {{userInfo.gender}}</span><br />
+								<span>票卡类型: {{userInfo.cardType}}</span><br />
+								<span>积分: {{userInfo.integral}}</span><br />
 								<a href="login\login.html" @click="loginOut">退出登录</a>
 							</div>
 						</div>
@@ -69,7 +69,7 @@
 						</div>
 						<el-avatar slot="reference" size="medium" :src="avatarPic"></el-avatar>
 					</el-popover>
-					
+
 				</div>
 			</div>
 		</nav>
@@ -91,11 +91,9 @@
 							<ve-line :data="checkInChartData" :settings="checkInChartSettings"></ve-line>
 						</el-col>
 						<el-col :span="12">
-							<ve-pie :data="genderChartData"></ve-pie>
+							<ve-pie :data="genderChartData" :legend-visible="true"></ve-pie>
 						</el-col>
 					</el-row>
-
-
 				</div>
 			</div>
 		</header>
@@ -119,86 +117,34 @@
 		</section>
 
 		<!-- Portfolio Section -->
-		<section id="portfolio">
+		<section id="exchange">
 			<div class="container-fluid p-0">
+				<h2 class="text-center mt-0">积分兑换</h2>
 				<div class="row no-gutters">
-					<div class="col-lg-4 col-sm-6">
-						<a class="portfolio-box" href="img/portfolio/fullsize/1.jpg">
-							<img class="img-fluid" src="img/portfolio/thumbnails/1.jpg" alt="">
-							<div class="portfolio-box-caption">
-								<div class="project-category text-white-50">
-									Category
-								</div>
-								<div class="project-name">
-									Project Name
-								</div>
+					<div class="col-lg-4 col-sm-6" v-for="(item,index) in commodity" :key="item.id">
+						<img class="img-fluid" v-bind:src="item.picUrl" alt="">
+						<div class="portfolio-box-caption">
+							<div class="project-name" style="text-align: left; margin-bottom: 10px;">
+								{{item.name}}
 							</div>
-						</a>
+							<div class="project-name" style="text-align: left; margin-bottom: 10px;">
+								所需积分：{{item.price}}
+							</div>
+							<el-button type="primary" style="margin-bottom: 10px;"
+								@click="exchangeCommodity(item.id,item.price)">兑换
+							</el-button>
+						</div>
 					</div>
-					<div class="col-lg-4 col-sm-6">
-						<a class="portfolio-box" href="img/portfolio/fullsize/2.jpg">
-							<img class="img-fluid" src="img/portfolio/thumbnails/2.jpg" alt="">
-							<div class="portfolio-box-caption">
-								<div class="project-category text-white-50">
-									Category
-								</div>
-								<div class="project-name">
-									Project Name
-								</div>
-							</div>
-						</a>
-					</div>
-					<div class="col-lg-4 col-sm-6">
-						<a class="portfolio-box" href="img/portfolio/fullsize/3.jpg">
-							<img class="img-fluid" src="img/portfolio/thumbnails/3.jpg" alt="">
-							<div class="portfolio-box-caption">
-								<div class="project-category text-white-50">
-									Category
-								</div>
-								<div class="project-name">
-									Project Name
-								</div>
-							</div>
-						</a>
-					</div>
-					<div class="col-lg-4 col-sm-6">
-						<a class="portfolio-box" href="img/portfolio/fullsize/4.jpg">
-							<img class="img-fluid" src="img/portfolio/thumbnails/4.jpg" alt="">
-							<div class="portfolio-box-caption">
-								<div class="project-category text-white-50">
-									Category
-								</div>
-								<div class="project-name">
-									Project Name
-								</div>
-							</div>
-						</a>
-					</div>
-					<div class="col-lg-4 col-sm-6">
-						<a class="portfolio-box" href="img/portfolio/fullsize/5.jpg">
-							<img class="img-fluid" src="img/portfolio/thumbnails/5.jpg" alt="">
-							<div class="portfolio-box-caption">
-								<div class="project-category text-white-50">
-									Category
-								</div>
-								<div class="project-name">
-									Project Name
-								</div>
-							</div>
-						</a>
-					</div>
-					<div class="col-lg-4 col-sm-6">
-						<a class="portfolio-box" href="img/portfolio/fullsize/6.jpg">
-							<img class="img-fluid" src="img/portfolio/thumbnails/6.jpg" alt="">
-							<div class="portfolio-box-caption p-3">
-								<div class="project-category text-white-50">
-									Category
-								</div>
-								<div class="project-name">
-									Project Name
-								</div>
-							</div>
-						</a>
+					<div>
+						<el-dialog title="兑换商品寄送地址" :visible.sync="showCommodityExchangeDialog" width="30%">
+							<el-form :model="commodityForm" :ref="commodityForm" label-width="70px"
+								label-position="left">
+								<el-form-item label="地址" prop="address">
+									<el-input suffix-icon="el-icon-address" v-model="commodityForm.address"></el-input>
+								</el-form-item>
+								<el-button type="primary" @click="commodityFormOk">确 定</el-button>
+							</el-form>
+						</el-dialog>
 					</div>
 				</div>
 			</div>
@@ -272,8 +218,8 @@
 			el: '#app',
 			data: function () {
 				return {
-					isLogin:false,
-					userInfo:{},
+					isLogin: false,
+					userInfo: {},
 					checkInChartData: {
 						columns: ['date', 'count'],
 						rows: []
@@ -289,7 +235,12 @@
 						rows: []
 					},
 					cardInfos: [],
-					avatarPic: 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png'
+					avatarPic: 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png',
+					commodity: [],
+					showCommodityExchangeDialog: false,
+					commodityForm: {
+						address: ''
+					}
 				}
 			},
 			methods: {
@@ -316,8 +267,67 @@
 
 				},
 
-				loginOut: function(){
+				loginOut: function () {
 					window.localStorage.clear();
+				},
+
+				exchangeCommodity: function (id, price) {
+					if (this.userInfo == null) {
+						this.$message({
+							message: '未登录，请先登录',
+							type: 'error'
+						});
+						return;
+					}
+					if (this.userInfo.integral < price) {
+						this.$message({
+							message: '积分不足，兑换失败',
+							type: 'error'
+						});
+						return;
+					}
+					this.commodityForm.id = id;
+					this.commodityForm.price = price;
+					this.showCommodityExchangeDialog = true;
+				},
+
+				commodityFormOk: function () {
+					this.showCommodityExchangeDialog = false;
+					if (this.commodityForm.address == '') {
+						this.$message({
+							message: '地址为空',
+							type: 'error'
+						});
+						return;
+					}
+					axios.get(url + '/addExchangeRecord', {
+						params: {
+							userId: this.userInfo.id,
+							commodityId: this.commodityForm.id,
+							integral: this.commodityForm.price,
+							address: this.commodityForm.address
+						}
+					}).then(res => {
+						if (res.data.status == 'ok') {
+							this.$message({
+								message: '兑换成功',
+								type: 'success'
+							});
+
+							axios.get(url + '/getIntegralByUserId?userId='+this.userInfo.id).then(res=>{
+								if(res.data.status == 'ok'){
+									this.userInfo.integral = res.data.integral;
+								}
+							})
+
+						} else {
+							this.$message({
+								message: '兑换失败',
+								type: 'error'
+							});
+						}
+					})
+
 				}
 
 			},
@@ -325,15 +335,15 @@
 				let userInfo = JSON.parse(window.localStorage.getItem("userInfo"));
 				this.userInfo = userInfo;
 				console.log(this.userInfo);
-				if(userInfo == null){
+				if (userInfo == null) {
 					this.isLogin = false;
 					this.avatarPic = 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png';
-				}else{
+				} else {
 					this.isLogin = true;
 					this.avatarPic = 'img/pic.jpg'
-					if(this.userInfo.gender == 0){
+					if (this.userInfo.gender == 0) {
 						this.userInfo.gender = '男';
-					}else{
+					} else {
 						this.userInfo.gender = '女';
 					}
 				}
@@ -347,6 +357,14 @@
 				axios.get(url + '/getAllCardTypes').then(res => {
 					this.cardInfos = res.data;
 					this.cardInfos.forEach(item => {
+						item.picUrl = pic_url + item.picUrl;
+					})
+				})
+
+				axios.get(url + '/getAllCommodities?page=0&pageSize=100').then(res => {
+					console.log(res.data);
+					this.commodity = res.data;
+					this.commodity.forEach(item => {
 						item.picUrl = pic_url + item.picUrl;
 					})
 				})
