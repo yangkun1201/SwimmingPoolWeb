@@ -33,7 +33,7 @@
 		<!-- Navigation -->
 		<nav class="navbar navbar-expand-lg navbar-light fixed-top py-3" id="mainNav">
 			<div class="container">
-				<a class="navbar-brand js-scroll-trigger" href="#page-top">游泳馆</a>
+				<a class="navbar-brand js-scroll-trigger" style="color: black;" href="#page-top">游泳馆</a>
 				<button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse"
 					data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false"
 					aria-label="Toggle navigation">
@@ -42,13 +42,13 @@
 				<div class="collapse navbar-collapse" id="navbarResponsive">
 					<ul class="navbar-nav ml-auto my-2 my-lg-0">
 						<li class="nav-item">
-							<a class="nav-link js-scroll-trigger" href="#buy_cards">购买票卡</a>
+							<a class="nav-link js-scroll-trigger" style="color: black;" href="#buy_cards">购买票卡</a>
 						</li>
 						<li class="nav-item">
-							<a class="nav-link js-scroll-trigger" href="#exchange">积分兑换</a>
+							<a class="nav-link js-scroll-trigger" style="color: black;" href="#exchange">积分兑换</a>
 						</li>
 						<li class="nav-item">
-							<a class="nav-link js-scroll-trigger" href="#contact">联系我们</a>
+							<a class="nav-link js-scroll-trigger" style="color: black;" href="#contact">联系我们</a>
 						</li>
 					</ul>
 				</div>
@@ -75,7 +75,7 @@
 		</nav>
 
 		<!-- Masthead -->
-		<header class="masthead">
+		<header class="masthead" style="background: none;">
 			<div class="container h-100">
 				<div>
 					<el-carousel indicator-position="outside">
@@ -120,7 +120,8 @@
 		<section id="exchange">
 			<div class="container-fluid p-0">
 				<h2 class="text-center mt-0">积分兑换</h2>
-				<div class="row no-gutters">
+				<hr class="divider my-4">
+				<div class="row no-gutters" style="margin-left: 170px;">
 					<div class="col-lg-4 col-sm-6" v-for="(item,index) in commodity" :key="item.id">
 						<img class="img-fluid" v-bind:src="item.picUrl" alt="">
 						<div class="portfolio-box-caption">
@@ -147,14 +148,6 @@
 						</el-dialog>
 					</div>
 				</div>
-			</div>
-		</section>
-
-		<!-- Call to Action Section -->
-		<section class="page-section bg-dark text-white">
-			<div class="container text-center">
-				<h2 class="mb-4">Free Download at Start Bootstrap!</h2>
-				<a class="btn btn-light btn-xl" href="https://startbootstrap.com/themes/creative/">Download Now!</a>
 			</div>
 		</section>
 
