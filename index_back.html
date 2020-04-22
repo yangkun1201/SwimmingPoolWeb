@@ -195,7 +195,7 @@
                     </el-form-item>
                     <el-form-item label="票卡类型" prop="card_type">
                       <el-select v-model="userEditForm.card_type" placeholder="请选择">
-                        <el-option v-for="item in card_types" :key="item.type" :label="item.description"
+                        <el-option v-for="item in card_types" :key="item.type" :label="item.name"
                           :value="item.type">
                         </el-option>
                       </el-select>
@@ -225,7 +225,9 @@
             <el-card class="box-card" style="width: 600px; margin: 10px;" v-for="(item,index) in card_types"
               :key="item.type">
               <img v-bind:src="item.picUrl" class="image" style="width: 80px;height: 80px;">
+              <span style="margin-left: 50px;">{{item.name}}</span>
               <span style="margin-left: 50px;">{{item.description}}</span>
+              <span style="margin-left: 50px;">价格：{{item.price}}</span>
               <el-button size="mini" type="danger" @click="deleteCard(item.type)"
                 style="float: right;margin-top: 25px;">删除
               </el-button>
@@ -237,11 +239,22 @@
           </div>
           <el-dialog title="新增票卡" :visible.sync="carddialogVisible" width="30%">
             <el-form :model="cardEditForm" :ref="cardEditForm" label-width="110px">
-              <el-form-item label="票卡类型(数字)" prop="type">
-                <el-input suffix-icon="el-icon-type" v-model="cardEditForm.type"></el-input>
+              <el-form-item label="票卡类型" prop="type">
+                <!-- <el-input suffix-icon="el-icon-type" v-model="cardEditForm.type"></el-input> -->
+                <el-select v-model="cardEditForm.type" placeholder="">
+                  <el-option v-for="item in cards" :key="item.id" :label="item.name"
+                    :value="item.id">
+                  </el-option>
+                </el-select>
               </el-form-item>
-              <el-form-item label="票卡名称" prop="desc">
+              <el-form-item label="票卡名称" prop="name">
+                <el-input suffix-icon="el-icon-name" v-model="cardEditForm.name"></el-input>
+              </el-form-item>
+              <el-form-item label="票卡描述" prop="desc">
                 <el-input suffix-icon="el-icon-desc" v-model="cardEditForm.desc"></el-input>
+              </el-form-item>
+              <el-form-item label="票卡价格" prop="price">
+                <el-input suffix-icon="el-icon-price" v-model="cardEditForm.price"></el-input>
               </el-form-item>
               <el-form-item>
                 <el-upload class="avatar-uploader" action="/cardUploadUrl" :show-file-list="false"
@@ -279,7 +292,7 @@
             </el-card>
           </div>
           <div style="margin-top: 20px;">
-            <el-pagination background layout="prev, pager, next" :total="500" @current-change="changePageCommodityInfo">
+            <el-pagination background layout="prev, pager, next" :total="commodityPage" @current-change="changePageCommodityInfo">
             </el-pagination>
           </div>
           <el-dialog title="新增商品" :visible.sync="commoditydialogVisible" width="30%">
@@ -334,7 +347,7 @@
             </el-table>
           </div>
           <div style="margin-top: 20px;">
-            <el-pagination background layout="prev, pager, next" :total="500"
+            <el-pagination background layout="prev, pager, next" :total="exchangePage"
               @current-change="changePageExchangeRecords">
             </el-pagination>
           </div>
@@ -412,32 +425,36 @@
           phone: '',
           vercode: ''
         },
-        check_inqure_total: 500,
+        check_inqure_total: 0,
         user_param: {
           phone: '',
           username: ''
         },
         userTable: [],
-        user_total: 500,
+        user_total: 0,
         userEditdialogVisible: false,
         userEditForm: {
           id: 0,
           phone: '',
           username: '',
           gender: '1',
-          card_type: 0
+          card_type:null
         },
         card_types: [],
+        cards:[],
         carddialogVisible: false,
         cardEditForm: {
           type: '',
+          name:'',
           desc: '',
+          price:'',
           picUrl: ''
         },
         cardUploadUrl: url + '/uploadCardPic',
         cardPicName: '',
         cardRelativeUrl: '',
         commodities: [],
+        commodityPage:0,
         commoditydialogVisible: false,
         commodityEditForm: {
           name: '',
@@ -450,7 +467,8 @@
         exchange_param: {
           username: ''
         },
-        exchangeTable: []
+        exchangeTable: [],
+        exchangePage:0
       }
     },
     methods: {
@@ -560,8 +578,9 @@
       fetchCheckTableRecords: function () {
         var phone = this.check_inquire_param.phone;
         var vercode = this.check_inquire_param.vercode;
-        axios.get(url + '/getCheckInOutRecords?phone=' + phone + '&vercode=' + vercode + '&page=0&pageSize=8').then(res => {
-          this.CheckInOutTable = res.data;
+        axios.get(url + '/getCheckInOutRecords?phone=' + phone + '&vercode=' + vercode + '&page=0&pageSize=6').then(res => {
+          this.CheckInOutTable = res.data.data;
+          this.check_inqure_total = res.data.totalPage*10;
           this.CheckInOutTable.forEach(element => {
             if (element.checkFlag == 0) {
               element.checkFlag = '入馆';
@@ -584,8 +603,9 @@
         val = val - 1;
         var phone = this.check_inquire_param.phone;
         var vercode = this.check_inquire_param.vercode;
-        axios.get(url + '/getCheckInOutRecords?phone=' + phone + '&vercode=' + vercode + '&page=' + val + '&pageSize=8').then(res => {
-          this.CheckInOutTable = res.data;
+        axios.get(url + '/getCheckInOutRecords?phone=' + phone + '&vercode=' + vercode + '&page=' + val + '&pageSize=6').then(res => {
+          this.CheckInOutTable = res.data.data;
+          this.check_inqure_total = res.data.totalPage*10;
           this.CheckInOutTable.forEach(element => {
             if (element.checkFlag == 0) {
               element.checkFlag = '入馆';
@@ -603,7 +623,8 @@
         var username = this.user_param.username;
         this.fetchCardInfo();
         axios.get(url + '/getUsers?phone=' + phone + '&username=' + username + '&page=0&pageSize=8').then(res => {
-          this.userTable = res.data;
+          this.userTable = res.data.data;
+          this.user_total = res.data.totalPage*10;
           console.log(this.userTable);
           this.userTable.forEach(element => {
             if (element.gender == 0) {
@@ -627,7 +648,8 @@
         var phone = this.user_param.phone;
         var username = this.user_param.username;
         axios.get(url + '/getUsers?phone=' + phone + '&username=' + username + '&page=' + val + '&pageSize=8').then(res => {
-          this.userTable = res.data;
+          this.userTable = res.data.data;
+          this.user_total = res.data.totalPage * 10;
           this.userTable.forEach(element => {
             if (element.gender == 0) {
               element.gender = '男';
@@ -646,6 +668,8 @@
         this.userEditForm.username = row.username;
         this.userEditForm.gender = row.gender == '男' ? '0' : '1';
         this.userEditForm.card_type = row.cardType;
+        console.log(this.userEditForm);
+        console.log(this.card_types);
       },
 
       userhandleDelete: function (index, row) {
@@ -712,6 +736,10 @@
 
       addCard: function () {
         this.carddialogVisible = true;
+        axios.get(url+'/getTypes').then(res=>{
+          this.cards = res.data;
+          console.log(this.cards);
+        });
       },
 
       cardBeforeUpload: function (file) {
@@ -744,7 +772,9 @@
         axios.get(url + '/addCard', {
           params: {
             type: this.cardEditForm.type,
+            name: this.cardEditForm.name,
             desc: this.cardEditForm.desc,
+            price: this.cardEditForm.price,
             picUrl: this.cardRelativeUrl
           }
         }).then(res => {
@@ -798,7 +828,7 @@
         let desc = '';
         this.card_types.forEach(item => {
           if (item.type == type) {
-            desc = item.description;
+            desc = item.name;
           }
         })
         return desc;
@@ -809,7 +839,8 @@
 
       fetchCommodityInfo: function () {
         axios.get(url + '/getAllCommodities?page=0&pageSize=4').then(res => {
-          this.commodities = res.data;
+          this.commodities = res.data.data;
+          this.commodityPage = res.data.totalPage*10;
           this.commodities.forEach(item => {
             item.picUrl = pic_url + item.picUrl;
           })
@@ -896,6 +927,7 @@
         val = val - 1;
         axios.get(url + '/getAllCommodities?page=' + val + '&pageSize=4').then(res => {
           this.commodities = res.data;
+          this.commodityPage = res.data.totalPage*10;
           this.commodities.forEach(item => {
             item.picUrl = pic_url + item.picUrl;
           })
@@ -910,7 +942,8 @@
             pageSize: 8
           }
         }).then(res => {
-          this.exchangeTable = res.data;
+          this.exchangeTable = res.data.data;
+          this.exchangePage = res.data.totalPage*10;
           this.exchangeTable.forEach(item => {
             var date = new Date(item.time);
             item.time = date.toLocaleString();
@@ -932,7 +965,8 @@
             pageSize: 8
           }
         }).then(res => {
-          this.exchangeTable = res.data;
+          this.exchangeTable = res.data.data;
+          this.exchangePage = res.data.totalPage*10;
           this.exchangeTable.forEach(item => {
             var date = new Date(item.time);
             item.time = date.toLocaleString();

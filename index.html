@@ -47,9 +47,6 @@
 						<li class="nav-item">
 							<a class="nav-link js-scroll-trigger" style="color: black;" href="#exchange">积分兑换</a>
 						</li>
-						<li class="nav-item">
-							<a class="nav-link js-scroll-trigger" style="color: black;" href="#contact">联系我们</a>
-						</li>
 					</ul>
 				</div>
 				<div style="margin-left: 60px;">
@@ -58,7 +55,7 @@
 							<div>
 								<span>用户名: {{userInfo.username}}</span><br />
 								<span>性别: {{userInfo.gender}}</span><br />
-								<span>票卡类型: {{userInfo.cardType}}</span><br />
+								<span>票卡类型: {{userInfo.cardName}}</span><br />
 								<span>积分: {{userInfo.integral}}</span><br />
 								<a href="login\login.html" @click="loginOut">退出登录</a>
 							</div>
@@ -107,8 +104,10 @@
 					<div class="col-lg-3 col-md-6 text-center" v-for="(item,index) in cardInfos" :key="item.type">
 						<div class="mt-5">
 							<img v-bind:src="item.picUrl" class="image" style="width: 120px;height: 120px;">
-							<h3 class="h6 mb-2" style="margin-top: 5px;">{{item.description}}</h3>
-							<el-button type="primary" style="margin-top: 10px;" @click="buyCard(item.type)">购买
+							<h3 class="h6 mb-2" style="margin-top: 5px;">{{item.name}}</h3>
+							<h3 class="h6 mb-2" style="margin-top: 5px;">价格：{{item.price}}</h3>
+							<el-button type="primary" style="margin-top: 10px;"
+								@click="buyCard(item.type,item.name,item.price)">购买
 							</el-button>
 						</div>
 					</div>
@@ -146,31 +145,6 @@
 								<el-button type="primary" @click="commodityFormOk">确 定</el-button>
 							</el-form>
 						</el-dialog>
-					</div>
-				</div>
-			</div>
-		</section>
-
-		<!-- Contact Section -->
-		<section class="page-section" id="contact">
-			<div class="container">
-				<div class="row justify-content-center">
-					<div class="col-lg-8 text-center">
-						<h2 class="mt-0">Let's Get In Touch!</h2>
-						<hr class="divider my-4">
-						<p class="text-muted mb-5">Ready to start your next project with us? Give us a call or send us
-							an email and we will get back to you as soon as possible!</p>
-					</div>
-				</div>
-				<div class="row">
-					<div class="col-lg-4 ml-auto text-center mb-5 mb-lg-0">
-						<i class="fas fa-phone fa-3x mb-3 text-muted"></i>
-						<div>+1 (202) 555-0149</div>
-					</div>
-					<div class="col-lg-4 mr-auto text-center">
-						<i class="fas fa-envelope fa-3x mb-3 text-muted"></i>
-						<!-- Make sure to change the email address in anchor text AND the link below! -->
-						<a class="d-block" href="mailto:contact@yourwebsite.com">contact@yourwebsite.com</a>
 					</div>
 				</div>
 			</div>
@@ -237,11 +211,9 @@
 				}
 			},
 			methods: {
-				buyCard: function (type) {
+				buyCard: function (type, name, price) {
 					var tradeNo = Date.parse(new Date());
-					window.location.href=url+'/pay?commodityName=票卡&amount=10&tradeNo='+tradeNo;
-
-					let phone = '17858285248';
+					let phone = this.userInfo.phone;
 					axios.get(url + '/changeUserCardType', {
 						params: {
 							phone: phone,
@@ -253,6 +225,13 @@
 								message: '购买票卡成功',
 								type: 'success'
 							});
+							for(let item of this.cardInfos){
+								if (item.type == type) {
+									this.userInfo.cardName = item.name;
+									this.$forceUpdate();
+									break;
+								}
+							}
 						} else {
 							this.$message({
 								message: '购买票卡失败',
@@ -260,7 +239,7 @@
 							});
 						}
 					})
-
+					window.location.href=url+'/pay?commodityName='+name+'&amount='+price+'&tradeNo='+tradeNo;
 				},
 
 				loginOut: function () {
@@ -310,8 +289,8 @@
 								type: 'success'
 							});
 
-							axios.get(url + '/getIntegralByUserId?userId='+this.userInfo.id).then(res=>{
-								if(res.data.status == 'ok'){
+							axios.get(url + '/getIntegralByUserId?userId=' + this.userInfo.id).then(res => {
+								if (res.data.status == 'ok') {
 									this.userInfo.integral = res.data.integral;
 								}
 							})
@@ -330,7 +309,6 @@
 			mounted: function () {
 				let userInfo = JSON.parse(window.localStorage.getItem("userInfo"));
 				this.userInfo = userInfo;
-				console.log(this.userInfo);
 				if (userInfo == null) {
 					this.isLogin = false;
 					this.avatarPic = 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png';
@@ -342,7 +320,24 @@
 					} else {
 						this.userInfo.gender = '女';
 					}
+					
 				}
+
+				axios.get(url+'/getCardTypeByPhone?phone='+this.userInfo.phone).then(res=>{
+					this.userInfo.cardType = res.data;
+				})
+
+				axios.get(url + '/getAllCardTypes').then(res => {
+					this.cardInfos = res.data;
+					this.cardInfos.forEach(item => {
+						item.picUrl = pic_url + item.picUrl;
+						if (item.type == this.userInfo.cardType) {
+							this.userInfo.cardName = item.name;
+							this.$forceUpdate();
+						}
+					})
+				})
+
 				axios.get(url + '/getPeopleCountToday').then(res => {
 					this.genderChartData.rows = res.data;
 				})
@@ -350,16 +345,10 @@
 					this.checkInChartData.rows = res.data;
 				})
 
-				axios.get(url + '/getAllCardTypes').then(res => {
-					this.cardInfos = res.data;
-					this.cardInfos.forEach(item => {
-						item.picUrl = pic_url + item.picUrl;
-					})
-				})
+
 
 				axios.get(url + '/getAllCommodities?page=0&pageSize=100').then(res => {
-					console.log(res.data);
-					this.commodity = res.data;
+					this.commodity = res.data.data;
 					this.commodity.forEach(item => {
 						item.picUrl = pic_url + item.picUrl;
 					})
