@@ -238,6 +238,9 @@
 			},
 			methods: {
 				buyCard: function (type) {
+					var tradeNo = Date.parse(new Date());
+					window.location.href=url+'/pay?commodityName=票卡&amount=10&tradeNo='+tradeNo;
+
 					let phone = '17858285248';
 					axios.get(url + '/changeUserCardType', {
 						params: {
